@@ -1,0 +1,23 @@
+For this example we will create a simple C-macro to iterate through the data products in an ArtRoot file. 
+
+This is limited in that certain data-products cannot be accessed using these tools, specifically recob::Track and recob::Vertex will cause this to fail.
+
+0) Source the setup script
+
+1) You need is an artroot file. 
+
+   Looking at the latest SBND MCC files from this talk:
+
+   https://sbn-docdb.fnal.gov/cgi-bin/private/RetrieveFile?docid=3947&filename=RoadToMCProduction1.0_PATPlenary150917_DBrailsford.pdf&version=1
+
+   I selected this file...
+
+   /pnfs/sbnd/persistent/sbndpro/mcc0.75/v06_48_00_MCC/prodgenie_nu_singleinteraction_cryostat_gsimple-configb-v1/reco/19889636_52/prodgenie_sbnd_GenieGen-20170905T141908_5648508b-c4ec-4e85-8786-972bb293c635_G4-20170905T143210_DetSim-20170905T151629_Reco-20170905T163939.root
+
+
+1*) If you are unsure about what is inside that artroot file (i.e. data-products and producers) you can setupthe version of sbndcode used to create the artroot file and do:
+    lar -c eventdump.fcl -s <YOUR_ARTROOT_FILE> -n 1
+
+2) Next you can use the provided Test.C file. This reads in the above artroot file and looks a certain data product and then plots it as a histogram via: 
+
+   root Test.C   
