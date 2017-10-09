@@ -24,4 +24,4 @@ This should work with all data products.
 
 3) Then execute the example program:
 
-   ./example_program /pnfs/sbnd/persistent/sbndpro/mcc0.75/v06_48_00_MCC/prodgenie_nu_singleinteraction_cryostat_gsimple-configb-v1/reco/19889636_52/prodgenie_sbnd_GenieGen-20170905T141908_5648508b-c4ec-4e85-8786-972bb293c635_G4-20170905T143210_DetSim-20170905T151629_Reco-20170905T163939.root
+   ./example_program 1 /pnfs/sbnd/persistent/sbndpro/mcc0.75/v06_48_00_MCC/prodgenie_nu_singleinteraction_cryostat_gsimple-configb-v1/reco/19889636_52/prodgenie_sbnd_GenieGen-20170905T141908_5648508b-c4ec-4e85-8786-972bb293c635_G4-20170905T143210_DetSim-20170905T151629_Reco-20170905T163939.root
