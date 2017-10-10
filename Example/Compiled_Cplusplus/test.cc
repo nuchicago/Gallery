@@ -41,12 +41,11 @@ int main(int argv, char** argc) {
   InputTag mctruths_tag { "generator" };
  
   //We have passed the input file as an argument to the function 
-
-  std::cout << "FILE : " << argc[2] << std::endl; 
-
   vector<string> filename;
-  filename.push_back(string(argc[2]));
-
+  for (int i = 1; i < argv; ++i) { 
+    std::cout << "FILE : " << argc[i] << std::endl; 
+    filename.push_back(string(argc[i]));
+  }
 
   //Define the histograms you want here
   TH1F* n_nu_hist = new TH1F("Nnu", "Title; x-axis (N-particles);Events", 51, -0.5, 50.5);
