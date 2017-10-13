@@ -1,0 +1,49 @@
+FERMIAPP_LARSOFT_DIR="/grid/fermiapp/products/larsoft/"
+FERMIOSG_LARSOFT_DIR="/cvmfs/fermilab.opensciencegrid.org/products/larsoft/"
+OASIS_LARSOFT_DIR="/cvmfs/oasis.opensciencegrid.org/fermilab/products/larsoft/"
+
+FERMIAPP_UBOONE_DIR="/grid/fermiapp/products/uboone/"
+FERMIOSG_UBOONE_DIR="/cvmfs/uboone.opensciencegrid.org/products/"
+OASIS_UBOONE_DIR="/cvmfs/oasis.opensciencegrid.org/microboone/products/"
+
+# Set up ups for LArSoft
+# Sourcing this setup will add larsoft and common to $PRODUCTS
+
+for dir in $FERMIAPP_LARSOFT_DIR $FERMIOSG_LARSOFT_DIR $OASIS_LARSOFT_DIR;
+do
+  if [[ -f $dir/setup ]]; then
+    echo "Setting up larsoft UPS area... ${dir}"
+    source $dir/setup
+    common=`dirname $dir`/common/db
+    if [[ -d $common ]]; then
+      export PRODUCTS=`dropit -p $PRODUCTS common/db`:`dirname $dir`/common/db
+    fi
+    break
+  fi
+done
+
+# Set up ups for uBooNE
+
+for dir in $FERMIAPP_UBOONE_DIR $FERMIOSG_UBOONE_DIR $OASIS_UBOONE_DIR;
+do
+  if [[ -f $dir/setup ]]; then
+    echo "Setting up uboone UPS area... ${dir}"
+    source $dir/setup
+    break
+  fi
+done
+
+
+#ups list -aK+ larsoftobj
+#echo "LARSOFTOBJ products available listed above. Pick desired one (usually latest), and do 'setup larsoftobj <version> -q<qualifiers>' "
+
+#echo ""
+#echo ""
+
+#ups list -aK+ gallery
+#echo "GALLERY products available listed above. Pick desired one (usually latest), and do 'setup gallery <version> -q<qualifiers>' "
+
+#echo ""
+
+setup larsoftobj v1_13_00 -q e10:prof
+setup uboonecode v06_26_01_07 -q e10:prof
