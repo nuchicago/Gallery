@@ -32,3 +32,5 @@ $(EXEC):FullTreeConversion.cc FullTreeConversionFunctions.cc
 	@echo Building $(EXEC)
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
+clean:	
+	rm $(EXEC)
