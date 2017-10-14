@@ -31,11 +31,19 @@ int main(int argv, char** argc) {
   int NTrack;
   int TrackNDaughters;
   int TrackNnulldQdx;
-  
-  double TrackMaxDeflection;
-    
+  double TrackMaxDeflection;    
   double TrueLeptonE;
   double TrueQ2;
+
+  //
+  double TrueW;
+  double Trueq0;
+  double Trueq3;
+  int TrueInteractionCode;
+  int TrueMode;
+  int TrueNpion;
+  
+
 
   fTree = new TTree("Vertices","ObjectKinematics");
   fTree->Branch("mcx",&mcx);
@@ -70,6 +78,13 @@ int main(int argv, char** argc) {
   fTree->Branch("TrackMaxDeflection", &TrackMaxDeflection);
   fTree->Branch("TrueLeptonE",&TrueLeptonE);
   fTree->Branch("TrueQ2",&TrueQ2);
+  
+  fTree->Branch("TrueW",&TrueW);
+  fTree->Branch("Trueq0",&Trueq0);
+  fTree->Branch("Trueq3",&Trueq3);
+  fTree->Branch("TrueInteractionCode",&TrueInteractionCode);
+  fTree->Branch("TrueMode",&TrueMode);
+  fTree->Branch("TrueNpion",&TrueNpion);  
   
   FullTreeConversionFunctions funcs;
   
@@ -124,88 +139,122 @@ int main(int argv, char** argc) {
       Sel2_trk_list.emplace_back(*Sel2_trk);
 
     }
-    
-    art::InputTag eventweight_tag("eventweight");
-    auto const & eventweights_list = *(ev.getValidHandle<std::vector <evwgh::MCEventWeight> >(eventweight_tag));
-
-    art::InputTag mctruth_tag("generator");
-    auto const & mctruth_list = *(ev.getValidHandle<std::vector <simb::MCTruth> >(mctruth_tag));
 
     art::InputTag trig_tag("TriggerResults::TPCNeutrinoIDFilter2");
     auto const & trig = *(ev.getValidHandle< art::TriggerResults >(trig_tag));
 
     double BNBWeight = 1;
 
-    for(int i = 0; i < int(mctruth_list.size()); i++){
-      auto const & mctruth = mctruth_list.at(i);
+    art::InputTag eventweight_tag("eventweight");
+
+    ////////////////////////////////////
+    //Check if the file is data or MC //
+    ////////////////////////////////////
+    bool isMC = true;
+    try {     
+      auto const & eventweights_list = 
+	*(ev.getValidHandle<std::vector <evwgh::MCEventWeight> >(eventweight_tag));
+    }
+    catch(const std::exception& e){
+	isMC = false;	
+    }
+    ///////////////////////////////////
+    
+
+    if(isMC){
+      auto const & eventweights_list = *(ev.getValidHandle<std::vector <evwgh::MCEventWeight> >(eventweight_tag));
       
-      CCNC = mctruth.GetNeutrino().CCNC();
-      TrueQ2 = mctruth.GetNeutrino().QSqr(); 
+      art::InputTag mctruth_tag("generator");
+      auto const & mctruth_list = *(ev.getValidHandle<std::vector <simb::MCTruth> >(mctruth_tag));
       
-      auto const & eventweights = eventweights_list.at(i);
-      
-      for(auto last : eventweights.fWeight){
-	if(last.first.find("bnbcorrection") != std::string::npos){
-	  BNBWeight *= last.second.at(0);
+      for(int i = 0; i < int(mctruth_list.size()); i++){
+	auto const & mctruth = mctruth_list.at(i);
+	
+	CCNC = mctruth.GetNeutrino().CCNC();
+	TrueQ2 = mctruth.GetNeutrino().QSqr(); 
+	TrueW  = mctruth.GetNeutrino().W(); 
+	TrueInteractionCode = mctruth.GetNeutrino().InteractionType();
+	TrueMode = mctruth.GetNeutrino().Mode(); 
+	TrueNpion = 0;
+	for(int j = 0; j < mctruth.NParticles(); j++){
+	  if(abs(mctruth.GetParticle(j).PdgCode()) == 211 &&
+	     mctruth.GetParticle(j).StatusCode() == 1){      
+	    TrueNpion++; 
+	  }// Check if they are charged pions 
+	}//Iterate through ALL the particles 
+	
+	//(nu.p-lep.p).E() and (nu.p-lep.p).Vect()
+	Trueq0 = (mctruth.GetNeutrino().Nu().Momentum()-
+		  mctruth.GetNeutrino().Lepton().Momentum()).E();
+	Trueq3 = (mctruth.GetNeutrino().Nu().Momentum()-
+		  mctruth.GetNeutrino().Lepton().Momentum()).Vect().Mag();    
+	
+	auto const & eventweights = eventweights_list.at(i);
+	
+	for(auto last : eventweights.fWeight){
+	  if(last.first.find("bnbcorrection") != std::string::npos){
+	    BNBWeight *= last.second.at(0);
+	  }
 	}
-      }
-      
-      
-      if(abs(mctruth.GetNeutrino().Nu().PdgCode()) == 12 || 
-	 abs(mctruth.GetNeutrino().Nu().PdgCode()) == 14  ){
 	
-	Enu = mctruth.GetNeutrino().Nu().Trajectory().Momentum(0).E(); 
-	TrueLeptonE = mctruth.GetNeutrino().Lepton().Trajectory().Momentum(0).E();
-	mcx = mctruth.GetNeutrino().Nu().EndX();
-	mcy = mctruth.GetNeutrino().Nu().EndY();
-	mcz = mctruth.GetNeutrino().Nu().EndZ();	
-	inAV = funcs.isAV(mcx,mcy,mcz);
 	
+	if(abs(mctruth.GetNeutrino().Nu().PdgCode()) == 12 || 
+	   abs(mctruth.GetNeutrino().Nu().PdgCode()) == 14  ){
+	  
+	  Enu = mctruth.GetNeutrino().Nu().Trajectory().Momentum(0).E(); 
+	  TrueLeptonE = mctruth.GetNeutrino().Lepton().Trajectory().Momentum(0).E();
+	  mcx = mctruth.GetNeutrino().Nu().EndX();
+	  mcy = mctruth.GetNeutrino().Nu().EndY();
+	  mcz = mctruth.GetNeutrino().Nu().EndZ();	
+	  inAV = funcs.isAV(mcx,mcy,mcz);
+	  
+	}// Only look at the numus
+      }//Iterate over all the neutrino interactions  
+    }//Check if it's real data
+    
+
+    double vtx_XYZ[3] = {0.0, 0.0, 0.0};
+    
+    //for(auto & trk : track_list){
+    for(int trk = 0; trk < int(track_list.size()); trk++){    
+      std::vector<recob::Vertex const*> vertex;
+      vertex_for_track.get(trk, vertex);
+      
+      if(vertex.size() == 0){continue;}
+      std::cout << "Size : " << vertex.size() << std::endl;
+      
+      auto const & vtx = vertex.at(0);
+      
+      vtx->XYZ(vtx_XYZ);
+      //std::cout << "X : " << vtx_XYZ[0] << " Y : " << vtx_XYZ[1] << " Z : " << vtx_XYZ[2] << std::endl; 
+      
+      std::vector<recob::PFParticle const*> pfp;
+      pfp_for_track.get(trk, pfp);
+      std::cout << "size of PFP list : " << pfp.size() << std::endl;
+      if(pfp.size() != 0){
+	std::cout << "N Daughters : " <<  pfp.at(0)->NumDaughters() << std::endl;
+	TrackNDaughters = pfp.at(0)->NumDaughters();
       }
     }
     
-      double vtx_XYZ[3] = {0.0, 0.0, 0.0};
-      
-      //for(auto & trk : track_list){
-      for(int trk = 0; trk < int(track_list.size()); trk++){    
-	std::vector<recob::Vertex const*> vertex;
-	vertex_for_track.get(trk, vertex);
-	
-	if(vertex.size() == 0){continue;}
-	std::cout << "Size : " << vertex.size() << std::endl;
-	
-	auto const & vtx = vertex.at(0);
-	
-	vtx->XYZ(vtx_XYZ);
-	//std::cout << "X : " << vtx_XYZ[0] << " Y : " << vtx_XYZ[1] << " Z : " << vtx_XYZ[2] << std::endl; 
-	
-	std::vector<recob::PFParticle const*> pfp;
-	pfp_for_track.get(trk, pfp);
-	std::cout << "size of PFP list : " << pfp.size() << std::endl;
-	if(pfp.size() != 0){
-	  std::cout << "N Daughters : " <<  pfp.at(0)->NumDaughters() << std::endl;
-	  TrackNDaughters = pfp.at(0)->NumDaughters();
-	}
-      }
-      
-      int N_mult = 0;
-      
-      for(auto const & trk : track_list){    
-	if(funcs.AssTrack(trk, vtx_XYZ[0], vtx_XYZ[1], vtx_XYZ[2])){ N_mult++;}
-      }
-      
-      TrackMult = N_mult;
-      
-      std::cout << "Vertex Multiplicity : " << N_mult << std::endl;
-      
-      NTrack = Sel2_trk_list.size();
-      
-      double max_L = 0;
-
+    int N_mult = 0;
+    
+    for(auto const & trk : track_list){    
+      if(funcs.AssTrack(trk, vtx_XYZ[0], vtx_XYZ[1], vtx_XYZ[2])){ N_mult++;}
+    }
+    
+    TrackMult = N_mult;
+    
+    std::cout << "Vertex Multiplicity : " << N_mult << std::endl;
+    
+    NTrack = Sel2_trk_list.size();
+    
+    double max_L = 0;
+    
     for(auto const & trk : Sel2_trk_list){
-           
+      
       TrackMaxDeflection = funcs.MaxDeflection(trk);
-
+      
       if(trk.Length() > max_L){
 	max_L = trk.Length();
 	TrackEndX = trk.End().X();
@@ -251,7 +300,7 @@ int main(int argv, char** argc) {
 	double stdev = std::sqrt(sq_sum / double(N) - avg * avg);	  
 	
 	TrackSTDdQdx = stdev;
-
+	
 	TrackTLMeandQdx = funcs.TrunMean(dqdx);
 	/*	
 	std::vector<double> TrackLin = Local3DLinearity(trk);
@@ -284,8 +333,9 @@ int main(int argv, char** argc) {
       vtx = vtx_XYZ[0];
       vty = vtx_XYZ[1];
       vtz = vtx_XYZ[2];
-
-      dist = sqrt( pow(vtx-mcx, 2) + pow(vty-mcy, 2) + pow(vtz-mcz, 2));
+      if(isMC){
+	dist = sqrt( pow(vtx-mcx, 2) + pow(vty-mcy, 2) + pow(vtz-mcz, 2));
+      }
       pass = trig.accept();
       
       weight = BNBWeight;
