@@ -1,20 +1,20 @@
-#Actual Analysis Code:
+# Actual Analysis Code:
 
-##To Setup: 
+## To Setup: 
 
 ` source setup_gallery`
 
 
-##To Build:
+## To Build:
 
 ` make`
 
 
-##To Run (wild cards allowed): 
+## To Run (wild cards allowed): 
 
 ` ./make_tree /path/to/artroot_files.root`
 
-##To submit to grid (WARNING: With great power comes great responsibility)
+## To submit to grid (WARNING: With great power comes great responsibility)
 
 `setup jobsub_client`
 
